@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gomix · Haz tu pedido</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --chamoy:#c62828; --chamoy-d:#8e1b1b; --chamoy-l:#ffe7df; --mango:#ffb300; --lima:#7cb342;
+    --bg:#fff4ec; --ink:#3a1f1a; --muted:#8a6b63; --line:#f3e1da;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:Nunito,system-ui,sans-serif;color:var(--ink);background:var(--bg);display:flex;justify-content:center}
+  .app{width:100%;max-width:480px;height:100dvh;display:flex;flex-direction:column;background:
+    radial-gradient(circle at 15% 10%,#ffe0cc 0,transparent 40%),radial-gradient(circle at 90% 90%,#ffd6d6 0,transparent 45%),var(--bg)}
+
+  header{background:linear-gradient(135deg,var(--chamoy),var(--chamoy-d));color:#fff;padding:12px 14px 10px;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+  .top{display:flex;align-items:center;gap:11px}
+  .logo{width:46px;height:46px;border-radius:50%;background:#fff;display:grid;place-items:center;flex:none}
+  header h1{font-family:"Baloo 2",sans-serif;margin:0;font-size:1.5rem;line-height:1}
+  header p{margin:2px 0 0;font-size:.82rem;opacity:.92}
+  .restart{margin-left:auto;background:rgba(255,255,255,.18);border:none;color:#fff;font:inherit;font-weight:800;font-size:.78rem;padding:7px 10px;border-radius:999px;cursor:pointer;white-space:nowrap;flex:none}
+
+  .steps{display:flex;gap:6px;margin-top:11px}
+  .step{flex:1;text-align:center;font-size:.74rem;font-weight:800;padding:6px 4px;border-radius:10px;background:rgba(255,255,255,.14);color:rgba(255,255,255,.75);transition:.25s}
+  .step b{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.25);margin-right:4px;font-size:.72rem}
+  .step.on{background:#fff;color:var(--chamoy)}
+  .step.on b{background:var(--mango);color:var(--ink)}
+  .step.done{background:rgba(255,255,255,.28);color:#fff}
+  .step.done b{background:var(--lima);color:#fff}
+
+  #chat{flex:1;overflow-y:auto;padding:16px 12px 10px;display:flex;flex-direction:column;gap:9px}
+  .msg{max-width:86%;padding:11px 14px;border-radius:16px;line-height:1.42;font-size:1rem;white-space:pre-line;animation:pop .22s ease-out}
+  .bot{align-self:flex-start;background:#fff;border-bottom-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .me{align-self:flex-end;background:var(--chamoy);color:#fff;border-bottom-right-radius:4px}
+  @keyframes pop{from{transform:translateY(6px);opacity:0}to{transform:none;opacity:1}}
+  .typing{align-self:flex-start;background:#fff;border-radius:16px;padding:13px 15px;display:flex;gap:4px}
+  .typing span{width:7px;height:7px;border-radius:50%;background:#d7a59b;animation:b 1s infinite}
+  .typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+  @keyframes b{0%,60%,100%{transform:none}30%{transform:translateY(-5px)}}
+
+  .card{background:#fff;border-radius:16px;padding:12px;box-shadow:0 1px 6px rgba(0,0,0,.1);animation:pop .22s}
+  .badge{display:inline-block;font-size:.75rem;font-weight:800;padding:3px 10px;border-radius:999px;background:var(--mango);color:var(--ink);margin-bottom:8px}
+  .prod{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;border:2px solid var(--line);margin-bottom:8px;transition:.2s}
+  .prod.sel{border-color:var(--chamoy);background:#fff8f5}
+  .prod .em{font-size:2rem;width:46px;height:46px;border-radius:12px;background:var(--chamoy-l);display:grid;place-items:center;flex:none}
+  .prod .info{flex:1;min-width:0}
+  .prod b{display:block;font-family:"Baloo 2";font-size:1.05rem;line-height:1.1}
+  .prod small{color:var(--muted);font-weight:700}
+  .prod .pr{color:var(--chamoy);font-weight:800}
+  .stepper{display:flex;align-items:center;gap:6px}
+  .stepper button{width:36px;height:36px;border-radius:50%;border:none;font-size:1.3rem;font-weight:800;cursor:pointer;display:grid;place-items:center}
+  .stepper .menos{background:var(--line);color:var(--chamoy-d)}
+  .stepper .mas{background:var(--chamoy);color:#fff}
+  .stepper input{width:42px;text-align:center;font:inherit;font-weight:800;font-size:1.1rem;border:none;background:none;padding:0;color:var(--ink)}
+  .hint{font-size:.85rem;color:var(--muted);text-align:center;margin:2px 0 8px;font-weight:700}
+  .hint.ok{color:var(--lima)}
+  .hint.warn{color:var(--chamoy)}
+
+  .big{width:100%;border:none;border-radius:14px;padding:14px;font:inherit;font-weight:800;font-size:1.05rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+  .big.go{background:var(--chamoy);color:#fff;box-shadow:0 3px 0 var(--chamoy-d)}
+  .big.go:disabled{background:#eee2dd;color:#b39d96;box-shadow:none;cursor:not-allowed}
+  .big.wa{background:#25d366;color:#fff;text-decoration:none;box-shadow:0 3px 0 #179c48;margin-top:10px}
+
+  .opts{display:flex;flex-direction:column;gap:7px;padding:2px 12px 10px}
+  .opts button{font:inherit;font-weight:800;font-size:1rem;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:14px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;box-shadow:0 2px 0 var(--line)}
+  .opts button .ic{font-size:1.3rem;width:28px;text-align:center}
+  .opts button small{display:block;font-weight:600;color:var(--muted);font-size:.8rem}
+  .opts button:hover,.opts button:focus-visible{border-color:var(--chamoy);outline:none}
+  .opts.row{flex-direction:row;flex-wrap:wrap}
+  .opts.row button{flex:1;justify-content:center}
+
+  .resumen .row{display:flex;justify-content:space-between;padding:4px 0;font-weight:700}
+  .resumen .tot{border-top:2px dashed var(--line);margin-top:6px;padding-top:8px;font-size:1.15rem;font-weight:800;color:var(--chamoy)}
+  .resumen .datos{margin-top:8px;background:var(--bg);border-radius:12px;padding:9px 11px;font-size:.92rem;line-height:1.6}
+
+  .cart{display:none;align-items:center;gap:8px;margin:0 12px 8px;background:var(--chamoy-d);color:#fff;border-radius:14px;padding:9px 13px;font-weight:800;font-size:.92rem}
+  .cart.show{display:flex}
+  .cart .t{margin-left:auto;background:var(--mango);color:var(--ink);border-radius:999px;padding:3px 11px}
+
+  form{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line)}
+  :root{color-scheme:light}
+  input#txt{flex:1;font:inherit;font-size:1rem;background:#fff;color:var(--ink);border:2px solid var(--line);border-radius:999px;padding:11px 15px;outline:none}
+  input#txt:focus{border-color:var(--chamoy)}
+  form.wait input#txt{border-color:var(--chamoy);background:#fff8f5}
+  form .send{border:none;background:var(--chamoy);color:#fff;width:46px;height:46px;border-radius:50%;cursor:pointer;flex:none;display:grid;place-items:center}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="top">
+      <div class="logo">
+        <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="18" cy="14" r="8" fill="#c62828"/><circle cx="46" cy="14" r="8" fill="#c62828"/>
+          <ellipse cx="32" cy="38" rx="20" ry="22" fill="#c62828"/>
+          <circle cx="32" cy="24" r="13" fill="#e53935"/>
+          <circle cx="27" cy="22" r="2" fill="#fff"/><circle cx="37" cy="22" r="2" fill="#fff"/>
+          <path d="M28 28q4 3 8 0" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <circle cx="24" cy="46" r="1.6" fill="#ffb300"/><circle cx="38" cy="50" r="1.6" fill="#ffb300"/><circle cx="34" cy="42" r="1.6" fill="#ffb300"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Gomix</h1>
+        <p>Pide tus gomitas en 3 pasos 🐻🌶️</p>
+      </div>
+      <button class="restart" id="restart" type="button">↺ Reiniciar</button>
+    </div>
+    <div class="steps">
+      <div class="step" id="s1"><b>1</b>Elige</div>
+      <div class="step" id="s2"><b>2</b>Tus datos</div>
+      <div class="step" id="s3"><b>3</b>Envía</div>
+    </div>
+  </header>
+
+  <div id="chat"></div>
+  <div class="opts" id="opts"></div>
+  <div class="cart" id="cart">🛒 <span id="cartN"></span><span class="t" id="cartT"></span></div>
+  <form id="f">
+    <input id="txt" placeholder="¿Tienes una duda? Escríbela aquí…" autocomplete="off">
+    <button class="send" aria-label="Enviar"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M3 20l18-8L3 4v6l12 2-12 2z"/></svg></button>
+  </form>
+</div>
+
+<script>
+/* ====== CONFIGURACIÓN (cambia aquí) ====== */
+const CONFIG = {
+  negocio: "Gomix",
+  whatsapp: "529612743210",      // 52 + número a 10 dígitos
+  minMayoreo: 10,                // bolsitas mínimas para precio de mayoreo
+  productos: [
+    { id:"tib", emoji:"🦈", nombre:"Tiburones", detalle:"con arenitas", menudeo:15, mayoreo:10, tienda:10 },
+    { id:"fru", emoji:"🍓", nombre:"Frutas", detalle:"con Miguelito", menudeo:15, mayoreo:10, tienda:10 },
+  ],
+  pagos: [["💵","Efectivo"], ["📲","Transferencia"]],
+  entregas: [["🤝","Te lo entrego en persona","Acordamos lugar y hora"], ["🏃","Paso a recogerlo","Tú vienes por él"]],
+  horario: "Entregamos todos los días 📅",
+};
+/* ======================================== */
+
+const TIPOS = {
+  menudeo: { titulo:"Menudeo", badge:"🛍️ Menudeo", salto:1 },
+  mayoreo: { titulo:"Mayoreo", badge:`📦 Mayoreo · desde ${CONFIG.minMayoreo} bolsitas`, salto:5 },
+  tienda:  { titulo:"Pedido de tienda", badge:"🏪 Pedido de tienda", salto:5 },
+};
+
+const $ = id => document.getElementById(id);
+const chat=$("chat"), opts=$("opts"), form=$("f"), txt=$("txt");
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+const money = n => "$"+n;
+let pedido, esperando=null, run=0;
+
+function reset(){ pedido={tipo:"menudeo",items:{},nombre:"",tienda:"",entrega:"",lugar:"",pago:""}; esperando=null; setWait(null); updCart(); }
+
+function setStep(n){ [1,2,3].forEach(i=>{ $("s"+i).className="step"+(i<n?" done":i===n?" on":""); }); }
+function setWait(ph){ form.classList.toggle("wait",!!ph); txt.placeholder = ph || "¿Tienes una duda? Escríbela aquí…"; if(ph) setTimeout(()=>txt.focus(),50); }
+const precioDe = p => p[pedido.tipo];
+const nBolsas = () => Object.values(pedido.items).reduce((a,b)=>a+b,0);
+const total = () => CONFIG.productos.reduce((s,p)=>s+(pedido.items[p.id]||0)*precioDe(p),0);
+function updCart(){ const n=nBolsas(); $("cart").classList.toggle("show",n>0);
+  $("cartN").textContent=`${n} bolsita${n===1?"":"s"} · ${TIPOS[pedido.tipo].titulo}`; $("cartT").textContent=money(total()); }
+
+function scroll(){ chat.scrollTop=chat.scrollHeight; }
+function me(t){ const d=document.createElement("div"); d.className="msg me"; d.textContent=t; chat.appendChild(d); scroll(); }
+async function bot(t,wait=500){
+  const my=run;
+  const ty=document.createElement("div"); ty.className="typing"; ty.innerHTML="<span></span><span></span><span></span>";
+  chat.appendChild(ty); scroll(); await sleep(wait); ty.remove();
+  if(my!==run) throw "cancel";
+  const d=document.createElement("div"); d.className="msg bot"; d.textContent=t; chat.appendChild(d); scroll();
+}
+// opciones: [icono, texto, subtexto, fn]
+function setOpts(list,row=false){
+  opts.innerHTML=""; opts.className="opts"+(row?" row":"");
+  list.forEach(([ic,label,sub,fn])=>{
+    const b=document.createElement("button"); b.type="button";
+    b.innerHTML=`<span class="ic">${ic}</span><span>${label}${sub?`<small>${sub}</small>`:""}</span>`;
+    b.onclick=()=>{ opts.innerHTML=""; me(`${ic} ${label}`); safe(fn); };
+    opts.appendChild(b);
+  });
+  scroll();
+}
+const safe = fn => Promise.resolve().then(fn).catch(e=>{ if(e!=="cancel") console.error(e); });
+const P0 = CONFIG.productos[0];
+
+/* ---------- Inicio ---------- */
+async function inicio(){
+  setStep(0);
+  await bot(`¡Hola! 👋 Bienvenido a ${CONFIG.negocio} 🐻🌶️`);
+  await bot("Aquí puedes pedir tus gomitas fácil y rápido. ¿Qué quieres hacer? 👇",400);
+  menu();
+}
+function menu(){
+  setOpts([
+    ["🛒","Hacer pedido","Menudeo o mayoreo",tipoPedido],
+    ["🏪","Hacer pedido de tienda","Para tiendas a las que les surtimos",()=>{ pedido.tipo="tienda"; updCart(); elegir(); }],
+    ["❓","Tengo una duda","Precios, entregas, pagos",dudas],
+  ]);
+}
+async function tipoPedido(){
+  await bot("¿Tu pedido es de menudeo o de mayoreo?");
+  setOpts([
+    ["🛍️","Menudeo",`${money(P0.menudeo)} la bolsita · desde 1`,()=>{ pedido.tipo="menudeo"; updCart(); elegir(); }],
+    ["📦","Mayoreo",`${money(P0.mayoreo)} la bolsita · desde ${CONFIG.minMayoreo} bolsitas`,()=>{ pedido.tipo="mayoreo"; updCart(); elegir(); }],
+  ]);
+}
+async function dudas(){
+  await bot("Elige tu duda 👇");
+  setOpts([
+    ["💲","¿Cuánto cuestan?","",precios],
+    ["📦","¿Cómo funciona el mayoreo?","",infoMayoreo],
+    ["🚚","¿Cuándo y cómo entregan?","",async()=>{ await bot(`${CONFIG.horario}\nTe las entregamos en persona en el lugar y hora que acordemos, o puedes pasar a recogerlas.`); despuesDuda(); }],
+    ["💳","¿Cómo pago?","",async()=>{ await bot(`Puedes pagar en ${CONFIG.pagos.map(p=>p[1].toLowerCase()).join(" o ")}.`); despuesDuda(); }],
+    ["🏪","Tengo una tienda","",async()=>{ await bot(`¡Nos encantaría surtirte! 🏪 Te dejamos producto a ${money(P0.tienda)} la bolsita y resurtimos cada semana. Usa "Hacer pedido de tienda" para pedir.`); despuesDuda(); }],
+  ]);
+}
+async function precios(){
+  await bot("🍬 Sabores:\n"+CONFIG.productos.map(p=>`${p.emoji} ${p.nombre} ${p.detalle}`).join("\n")+
+    `\n\n💲 Precios:\n🛍️ Menudeo: ${money(P0.menudeo)} la bolsita\n📦 Mayoreo (desde ${CONFIG.minMayoreo} bolsitas): ${money(P0.mayoreo)} la bolsita`);
+  despuesDuda();
+}
+async function infoMayoreo(){
+  await bot(`Si pides ${CONFIG.minMayoreo} bolsitas o más (puedes combinar sabores), cada una te sale en ${money(P0.mayoreo)} en lugar de ${money(P0.menudeo)}. ¡Ideal si las quieres revender! 💪`);
+  despuesDuda();
+}
+function despuesDuda(){ setOpts([["🛒","Hacer pedido","",tipoPedido],["❓","Otra duda","",dudas]]); }
+
+/* ---------- Paso 1: elegir ---------- */
+async function elegir(){
+  setStep(1);
+  const t=pedido.tipo;
+  await bot(t==="tienda" ? "🏪 ¡Hola! Elige cuántas bolsitas quiere tu tienda de cada sabor con los botones + y −:"
+    : t==="mayoreo" ? `📦 Mayoreo: elige cuántas bolsitas quieres de cada sabor (mínimo ${CONFIG.minMayoreo} en total, puedes combinar):`
+    : "Usa los botones + y − para elegir cuántas bolsitas quieres de cada sabor 👇");
+  const card=document.createElement("div"); card.className="card";
+  card.innerHTML=`<span class="badge">${TIPOS[t].badge}</span>`;
+  const salto=TIPOS[t].salto;
+  CONFIG.productos.forEach(p=>{
+    const row=document.createElement("div"); row.className="prod";
+    row.innerHTML=`<span class="em">${p.emoji}</span><div class="info"><b>${p.nombre}</b><small>${p.detalle} · <span class="pr">${money(precioDe(p))}</span></small></div>
+      <div class="stepper"><button type="button" class="menos" aria-label="Quitar">−</button><input inputmode="numeric" value="${pedido.items[p.id]||0}" aria-label="Cantidad"><button type="button" class="mas" aria-label="Agregar">+</button></div>`;
+    const inp=row.querySelector("input");
+    const set=v=>{ v=Math.max(0,Math.min(999,parseInt(v,10)||0)); inp.value=v; if(v) pedido.items[p.id]=v; else delete pedido.items[p.id]; row.classList.toggle("sel",v>0); refresh(); };
+    row.querySelector(".mas").onclick=()=>set((+inp.value||0)+salto);
+    row.querySelector(".menos").onclick=()=>set((+inp.value||0)-salto);
+    inp.oninput=()=>set(inp.value);
+    row.classList.toggle("sel",(pedido.items[p.id]||0)>0);
+    card.appendChild(row);
+  });
+  const hint=document.createElement("div"); hint.className="hint";
+  const go=document.createElement("button"); go.type="button"; go.className="big go"; go.textContent="Continuar  ➜";
+  card.append(hint,go);
+  function refresh(){
+    updCart(); const n=nBolsas(); const min = t==="mayoreo" ? CONFIG.minMayoreo : 1;
+    hint.className="hint";
+    if(!n){ hint.textContent = t==="mayoreo" ? `Elige al menos ${min} bolsitas para mayoreo` : "Elige al menos 1 bolsita para continuar"; }
+    else if(n<min){ hint.className="hint warn"; hint.textContent=`Llevas ${n}. Te faltan ${min-n} para el precio de mayoreo`; }
+    else {
+      hint.className="hint ok";
+      hint.textContent=`Llevas ${n} bolsita${n===1?"":"s"} · Total ${money(total())}`;
+      if(t==="menudeo" && n>=CONFIG.minMayoreo){ hint.className="hint warn"; hint.textContent=`Llevas ${n} · ${money(total())}. 💡 ¡Con ${CONFIG.minMayoreo} o más te conviene Mayoreo (${money(P0.mayoreo)} c/u)! Toca "Reiniciar" y elige Mayoreo.`; }
+    }
+    go.disabled = n<min;
+  }
+  go.onclick=()=>{ card.querySelectorAll("button,input").forEach(x=>x.disabled=true); me("✅ Listo, es todo"); safe(t==="tienda"?pedirTienda:pedirNombre); };
+  refresh(); chat.appendChild(card); scroll(); opts.innerHTML="";
+}
+
+/* ---------- Paso 2: datos ---------- */
+async function pedirNombre(){
+  setStep(2);
+  await bot("¡Muy bien! 😋 Ahora, ¿cuál es tu nombre?");
+  esperando={tipo:"nombre"}; setWait("✏️ Escribe tu nombre aquí");
+}
+async function pedirTienda(){
+  setStep(2);
+  await bot("¿Cómo se llama tu tienda?");
+  esperando={tipo:"tienda"}; setWait("✏️ Nombre de la tienda");
+}
+async function pedirEncargado(){
+  await bot(`¡Gracias, ${pedido.tienda}! 🏪 ¿Quién hace el pedido? (nombre del encargado)`);
+  esperando={tipo:"nombre"}; setWait("✏️ Tu nombre");
+}
+async function pedirDireccion(){
+  await bot("¿Dónde está la tienda? (dirección o una referencia) y, si quieres, a qué hora te queda mejor la entrega.");
+  esperando={tipo:"lugar"}; setWait("✏️ Ej: Calle 5 Norte #12, después de las 4 pm");
+}
+async function pedirEntrega(){
+  await bot(`Mucho gusto, ${pedido.nombre} 😊 ¿Cómo quieres recibir tu pedido?`);
+  setOpts(CONFIG.entregas.map(([ic,t,sub])=>[ic,t,sub,async()=>{ pedido.entrega=t;
+    if(t.includes("entrego")){ await bot("¿En dónde y a qué hora te lo entregamos?"); esperando={tipo:"lugar"}; setWait("✏️ Ej: Parque central a las 3 pm"); }
+    else pedirPago(); }]));
+}
+async function pedirPago(){
+  await bot("¿Cómo vas a pagar?");
+  setOpts(CONFIG.pagos.map(([ic,t])=>[ic,t,"",()=>{ pedido.pago=t; resumen(); }]),true);
+}
+
+/* ---------- Paso 3: enviar ---------- */
+function textoPedido(){
+  const t=pedido.tipo;
+  const l=CONFIG.productos.filter(p=>pedido.items[p.id]).map(p=>`• ${pedido.items[p.id]} × ${p.nombre} ${p.detalle} — ${money(pedido.items[p.id]*precioDe(p))}`);
+  let s=`🧾 *Nuevo pedido ${CONFIG.negocio} — ${TIPOS[t].titulo.toUpperCase()}*\n\n`;
+  if(t==="tienda") s+=`🏪 Tienda: ${pedido.tienda}\n👤 Encargado: ${pedido.nombre}\n`; else s+=`👤 ${pedido.nombre}\n`;
+  s+=`${l.join("\n")}\n\n📦 ${nBolsas()} bolsitas\n💰 *Total: ${money(total())}*\n`;
+  s+= t==="tienda" ? `📍 ${pedido.lugar}\n` : `📍 ${pedido.entrega}${pedido.lugar?": "+pedido.lugar:""}\n`;
+  return s+`💳 ${pedido.pago}`;
+}
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+async function resumen(){
+  setStep(3);
+  const t=pedido.tipo;
+  await bot("¡Ya casi! 🎉 Revisa tu pedido:");
+  const card=document.createElement("div"); card.className="card resumen";
+  const rows=CONFIG.productos.filter(p=>pedido.items[p.id]).map(p=>`<div class="row"><span>${p.emoji} ${pedido.items[p.id]} × ${p.nombre}</span><span>${money(pedido.items[p.id]*precioDe(p))}</span></div>`).join("");
+  const datos = t==="tienda"
+    ? `🏪 ${esc(pedido.tienda)}<br>👤 ${esc(pedido.nombre)}<br>📍 ${esc(pedido.lugar)}<br>💳 ${esc(pedido.pago)}`
+    : `👤 ${esc(pedido.nombre)}<br>📍 ${esc(pedido.entrega)}${pedido.lugar?": "+esc(pedido.lugar):""}<br>💳 ${esc(pedido.pago)}`;
+  card.innerHTML=`<span class="badge">${TIPOS[t].badge}</span>${rows}<div class="row tot"><span>Total a pagar</span><span>${money(total())}</span></div><div class="datos">${datos}</div>`;
+  const a=document.createElement("a"); a.className="big wa"; a.target="_blank"; a.rel="noopener";
+  a.href=`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(textoPedido())}`;
+  a.innerHTML=`<svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.4-.7-2.8-1.1-4.6-4-4.8-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.7-.1l1.9.9c.3.1.5.2.5.3.1.1.1.7-.1 1.3z"/></svg>Enviar pedido por WhatsApp`;
+  card.appendChild(a); chat.appendChild(card); scroll();
+  await bot("👆 Toca el botón verde. Se abrirá WhatsApp con tu pedido ya escrito, solo dale enviar. ¡Gracias! 🐻🌶️",400);
+  setOpts([["✏️","Cambiar cantidades","",elegir],["🔄","Hacer otro pedido","",()=>{ reset(); menu(); }]]);
+}
+
+/* ---------- Texto libre ---------- */
+const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
+form.addEventListener("submit", e=>{ e.preventDefault(); const t=txt.value.trim(); if(!t) return; txt.value=""; me(t); opts.innerHTML=""; safe(()=>libre(t)); });
+async function libre(t){
+  if(esperando){
+    const w=esperando; esperando=null; setWait(null);
+    if(w.tipo==="tienda"){ pedido.tienda=t.slice(0,60); return pedirEncargado(); }
+    if(w.tipo==="nombre"){ pedido.nombre=t.slice(0,60); return pedido.tipo==="tienda" ? pedirDireccion() : pedirEntrega(); }
+    if(w.tipo==="lugar"){ pedido.lugar=t.slice(0,150); return pedirPago(); }
+  }
+  const m=norm(t);
+  if(/(tienda|negocio|abarrote)/.test(m)){ pedido.tipo="tienda"; updCart(); return elegir(); }
+  if(/(mayoreo|revend|distribu|muchas)/.test(m)) return infoMayoreo();
+  if(/(precio|cuesta|cuanto|vale|sabor|tiburon|fruta|miguelito|arenita)/.test(m)) return precios();
+  if(/(pedido|pedir|quiero|comprar|ordenar)/.test(m)) return tipoPedido();
+  if(/(pago|pagar|transfer|efectivo|tarjeta)/.test(m)){ await bot(`Puedes pagar en ${CONFIG.pagos.map(p=>p[1].toLowerCase()).join(" o ")}.`); return despuesDuda(); }
+  if(/(entrega|envio|domicilio|donde|recoger|horario|hora|dia|abren)/.test(m)){ await bot(`${CONFIG.horario}\nTe las entregamos en persona en el lugar y hora que acordemos, o puedes pasar a recogerlas.`); return despuesDuda(); }
+  if(/(hola|buenas|que onda|hey)/.test(m)){ await bot("¡Hola! 👋 ¿Qué quieres hacer?"); return menu(); }
+  if(/(gracias|grax)/.test(m)){ await bot("¡De nada! 🐻🌶️"); return menu(); }
+  await bot("Mmm, no entendí 😅 Elige una opción de abajo 👇"); menu();
+}
+
+$("restart").onclick=()=>{ run++; chat.innerHTML=""; opts.innerHTML=""; reset(); safe(inicio); };
+reset();
+safe(inicio);
+</script>
+</body>
+</html>
